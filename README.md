@@ -1,2 +1,2 @@
 # ha-airporce
-HomeAssistant integration for 
+Custom HomeAssistant integration for AirPorce air purifiers.
