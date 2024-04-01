@@ -2,7 +2,7 @@ from homeassistant import config_entries
 from homeassistant.core import callback
 import voluptuous as vol
 
-from .const import DOMAIN, CONFIG_PARAM_TOKEN
+from .const import DOMAIN, CONFIG_KEY_TOKEN
 
 
 class AirPorceConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
@@ -15,12 +15,12 @@ class AirPorceConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
         # Define the data schema for the form
         data_schema = vol.Schema({
-            vol.Required(CONFIG_PARAM_TOKEN): str,
+            vol.Required(CONFIG_KEY_TOKEN): str,
         })
 
         if user_input is not None:
             # Validate user input
-            token = user_input[CONFIG_PARAM_TOKEN]
+            token = user_input[CONFIG_KEY_TOKEN]
             # Here you would typically validate the token by attempting a test API call
             valid = True  # Replace with actual validation logic
             if valid:
@@ -53,7 +53,7 @@ class AirPorceOptionsFlowHandler(config_entries.OptionsFlow):
 
         # Define options schema (if you have options to configure)
         options_schema = vol.Schema({
-            vol.Optional(CONFIG_PARAM_TOKEN, default=self.config_entry.options.get(CONFIG_PARAM_TOKEN)): str,
+            vol.Optional(CONFIG_KEY_TOKEN, default=self.config_entry.options.get(CONFIG_KEY_TOKEN)): str,
         })
 
         return self.async_show_form(step_id="user", data_schema=options_schema)

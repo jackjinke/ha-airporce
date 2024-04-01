@@ -1,7 +1,7 @@
 import logging
 from .api import AirPorceApi
-from .const import DOMAIN
-from homeassistant.components.fan import FanEntity, SUPPORT_PRESET_MODE, PRESET_MODES
+from .const import DOMAIN, DATA_KEY_API, DATA_KEY_GROUPS
+from homeassistant.components.fan import FanEntity
 from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
 
@@ -10,13 +10,25 @@ _LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup_entry(hass, entry, async_add_entities):
-    """Set up the fan platform for AirPurifierFan."""
-    # Retrieve the API client
-    api = hass.data[DOMAIN][entry.entry_id]
+    """Set up fans for each device from a config entry."""
+    # Retrieve data from `hass.data`
+    api = hass.data[DOMAIN][entry.entry_id][DATA_KEY_API]
+    groups = hass.data[DOMAIN][entry.entry_id][DATA_KEY_GROUPS]
+    
+    # Create a list of fan entities
+    entities = [
+        AirPurifierFan(
+            name=f"{device.model}-{device.id}",
+            unique_id=device.uuid,
+            device_id=device.id,
+            api=api
+        )
+        for group in groups
+        for device in group['devices']
+    ]
 
-    # Now you can use `api_client` to interact with your device's API
-    # TODO: Fetch name, unique ID and device ID.
-    async_add_entities([AirPurifierFan(api)])
+    # Add the fan entities
+    async_add_entities(entities, update_before_add=True)
 
 
 class AirPurifierFan(FanEntity):
