@@ -22,10 +22,10 @@ class AirPorceConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             # Validate user input
             token = user_input[CONFIG_KEY_TOKEN]
             # Here you would typically validate the token by attempting a test API call
-            valid = True  # Replace with actual validation logic
+            valid = len(token) == 36  # TODO: better validation
             if valid:
                 # If the token is valid, proceed to create the config entry
-                return self.async_create_entry(title="API token", data=user_input)
+                return self.async_create_entry(title=f"User with token: {token[:4]}****{token[-4:]}", data=user_input)
             else:
                 # If the token is invalid, show an error message
                 errors["base"] = "invalid_token"
@@ -41,6 +41,10 @@ class AirPorceConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
 
 class AirPorceOptionsFlowHandler(config_entries.OptionsFlow):
+    def __init__(self, config_entry):
+        """Initialize options flow."""
+        self.config_entry = config_entry
+
     async def async_step_init(self, user_input=None):
         """Manage the options."""
         return await self.async_step_user()

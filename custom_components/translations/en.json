@@ -1,0 +1,19 @@
+{
+    "config": {
+        "title": "Setup integration",
+        "step": {
+            "user": {
+                "description": "Please enter a valid user API token to connect to AirPorce service",
+                "data": {
+                    "api_token": "API Token"
+                },
+                "data_description": {
+                    "api_token": "You may get a valid API token by capturing app's HTTP request headers to AirPorce API"
+                }
+            }
+        },
+        "error": {
+            "invalid_token": "The provided token is invalid."
+        }
+    }
+}

@@ -1,7 +1,7 @@
 import logging
 from .api import AirPorceApi
 from .const import DOMAIN, DATA_KEY_API, DATA_KEY_GROUPS
-from homeassistant.components.fan import FanEntity
+from homeassistant.components.fan import FanEntity, SUPPORT_PRESET_MODE
 from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
 
@@ -18,9 +18,9 @@ async def async_setup_entry(hass, entry, async_add_entities):
     # Create a list of fan entities
     entities = [
         AirPurifierFan(
-            name=f"{device.model}-{device.id}",
-            unique_id=device.uuid,
-            device_id=device.id,
+            name=f"{device['model']}-{device['id']}",
+            unique_id=device['uuid'],
+            device_id=device['id'],
             api=api
         )
         for group in groups
@@ -51,6 +51,10 @@ class AirPurifierFan(FanEntity):
     @property
     def unique_id(self):
         return self._unique_id
+
+    @property
+    def supported_features(self):
+        return SUPPORT_PRESET_MODE
 
     @property
     def is_on(self):
