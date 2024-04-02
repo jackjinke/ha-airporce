@@ -26,6 +26,18 @@ class AirPorceApi:
             return None
 
 
+    def get_status(self, device_id: str):
+        """Get the current status of the device from the API."""
+        url = f"{self.base_url}/addons/shopro/user_device/get_status"
+        data = {"did": device_id, "language": self.lang}
+        try:
+            response = requests.post(url, json=data, headers=self.headers)
+            response.raise_for_status()  # Raises HTTPError for bad responses
+            return response.json()
+        except requests.RequestException as e:
+            print(f"Error communicating with API: {e}")
+            return None
+
     def set_mode(self, device_id: str, mode_id: int) -> Optional[bool]:
         """Set the mode of the air purifier."""
         url = f"{self.base_url}/addons/shopro/user_device/action_control"

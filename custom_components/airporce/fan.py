@@ -1,12 +1,14 @@
 import logging
 from .api import AirPorceApi
 from .const import DOMAIN, DATA_KEY_API, DATA_KEY_GROUPS
+from datetime import timedelta
 from homeassistant.components.fan import FanEntity, SUPPORT_PRESET_MODE
 from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
 
 
 _LOGGER = logging.getLogger(__name__)
+SCAN_INTERVAL = timedelta(minutes=5)
 
 
 async def async_setup_entry(hass, entry, async_add_entities):
@@ -40,9 +42,26 @@ class AirPurifierFan(FanEntity):
         self._unique_id = unique_id
         self.device_id = device_id
         self.api = api
-        self._is_on = False
-        self._preset_mode = None
-        self._preset_modes = self.mode_mapping.keys()
+        self.async_update()
+
+    def update(self):
+        """Fetch new state data for this entity."""
+        status = self.api.get_status(self.device_id)
+        if status:
+            self.update_status(status)
+
+    async def async_update(self):
+        """Fetch new state data for this entity."""
+        status = await self.hass.async_add_executor_job(
+            self.api.get_status, self.device_id
+        )
+        if status:
+            self.update_status(status)
+
+    def update_status(self, status):
+        cur_mode_id = status['data']['control']['mode']
+        self._preset_mode = cur_mode_id
+        self._is_on = cur_mode_id != self.mode_mapping['Off']
 
     @property
     def name(self):
@@ -62,7 +81,7 @@ class AirPurifierFan(FanEntity):
 
     @property
     def preset_modes(self):
-        return self._preset_modes
+        return list(self.mode_mapping.keys())
 
     @property
     def preset_mode(self):
@@ -70,12 +89,10 @@ class AirPurifierFan(FanEntity):
 
     def turn_on(self, **kwargs):
         # Implement turning on the purifier and setting it to Smart mode by default
-        self._is_on = True
         self.set_preset_mode("Smart")
 
     def turn_off(self, **kwargs):
         # Implement turning off the purifier
-        self._is_on = False
         self.set_preset_mode("Off")
 
     def set_preset_mode(self, preset_mode):
