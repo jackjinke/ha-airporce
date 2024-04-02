@@ -35,13 +35,17 @@ async def async_setup_entry(hass, entry, async_add_entities):
 
 class AirPurifierFan(FanEntity):
 
-    mode_mapping = {"Smart": 2, "Sleep": 20, "Off": 10}
+    _on_mode = 'Smart'
+    _off_mode = 'Off'
+    _off_mode_ids = [10, 12]    # Appearently both means the device is off
+    _mode_mapping = {"Smart": 2, "Sleep": 20, "Off": 10}
 
     def __init__(self, name: str, unique_id: str, device_id: str, api: AirPorceApi):
         self._name = name
         self._unique_id = unique_id
         self.device_id = device_id
         self.api = api
+        self._preset_mode = self._off_mode # TODO: remove after all modes are supported
         self.async_update()
 
     def update(self):
@@ -60,8 +64,15 @@ class AirPurifierFan(FanEntity):
 
     def update_status(self, status):
         cur_mode_id = status['data']['control']['mode']
-        self._preset_mode = cur_mode_id
-        self._is_on = cur_mode_id != self.mode_mapping['Off']
+        if cur_mode_id in self._off_mode_ids:
+            self._is_on = False
+            self._preset_mode = self._off_mode
+        else:
+            self._is_on = True
+            for key, value in self._mode_mapping.items():
+                if value == cur_mode_id:
+                    self._preset_mode = key
+                    break
 
     @property
     def name(self):
@@ -81,7 +92,7 @@ class AirPurifierFan(FanEntity):
 
     @property
     def preset_modes(self):
-        return list(self.mode_mapping.keys())
+        return list(self._mode_mapping.keys())
 
     @property
     def preset_mode(self):
@@ -89,19 +100,22 @@ class AirPurifierFan(FanEntity):
 
     def turn_on(self, **kwargs):
         # Implement turning on the purifier and setting it to Smart mode by default
-        self.set_preset_mode("Smart")
+        self.set_preset_mode(self._on_mode)
 
     def turn_off(self, **kwargs):
         # Implement turning off the purifier
-        self.set_preset_mode("Off")
+        self.set_preset_mode(self._off_mode)
 
     def set_preset_mode(self, preset_mode):
-        mode_id = self.mode_mapping.get(preset_mode)
+        mode_id = self._mode_mapping.get(preset_mode)
         if mode_id is not None:
             result = self.api.set_mode(self.device_id, mode_id)
             if result:
-                self._preset_mode = preset_mode
-                self._is_on = mode_id != 10  # Assuming mode 10 is 'Off'
+                if preset_mode == self._off_mode:
+                    self._is_on = False
+                else:
+                    self._is_on = True
+                    self._preset_mode = preset_mode
                 self.async_write_ha_state()  # Inform HA about the update
                 _LOGGER.info(f"Successfully set mode to {preset_mode}")
             else:
