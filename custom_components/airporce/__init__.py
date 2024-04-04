@@ -48,7 +48,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     }
 
     # Forward the setup to your platform(s)
-    for platform in ["fan"]:  # Adjust based on your available platforms
+    for platform in ['fan', 'sensor']:  # Adjust based on your available platforms
         hass.async_create_task(
             hass.config_entries.async_forward_entry_setup(entry, platform)
         )
