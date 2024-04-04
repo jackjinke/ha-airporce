@@ -99,5 +99,5 @@ class AirPurifierFan(FanEntity, CoordinatorEntity):
             case 'Smart':
                 self.api.set_mode(self._device_id, 2)
             case 'Sleep':
-                self.api.set_mode(self.device_id, 20)
+                self.api.set_mode(self._device_id, 20)
         self.hass.async_create_task(self.coordinator.async_request_refresh())
