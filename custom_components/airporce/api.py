@@ -23,7 +23,7 @@ class AirPorceApi:
         try:
             response = requests.post(url, json=data, headers=self.headers)
             response.raise_for_status()  # Raises HTTPError for bad responses
-            return response.json().get('data')
+            return response.json()
         except requests.RequestException as e:
             print(f"Error communicating with API: {e}")
             return None
@@ -34,7 +34,7 @@ class AirPorceApi:
         try:
             response = requests.post(url, json=data, headers=self.headers)
             response.raise_for_status()  # Raises HTTPError for bad responses
-            return response.json().get('data')
+            return response.json()
         except requests.RequestException as e:
             print(f"Error communicating with API: {e}")
             return None
@@ -45,7 +45,7 @@ class AirPorceApi:
         try:
             response = requests.post(url, json=data, headers=self.headers)
             response.raise_for_status()  # Raises HTTPError for bad responses
-            return response.json().get('data')
+            return response.json()
         except requests.RequestException as e:
             print(f"Error communicating with API: {e}")
             return None
@@ -57,7 +57,7 @@ class AirPorceApi:
         try:
             response = requests.post(url, json=data, headers=self.headers)
             response.raise_for_status()  # Raises HTTPError for bad responses
-            return response.json().get('data')
+            return response.json()
         except requests.RequestException as e:
             print(f"Error communicating with API: {e}")
             return None
@@ -69,7 +69,7 @@ class AirPorceApi:
         try:
             response = requests.post(url, json=data, headers=self.headers)
             response.raise_for_status()  # Raises HTTPError for bad responses
-            return response.json().get('data')
+            return response.json()
         except requests.RequestException as e:
             print(f"Error communicating with API: {e}")
             return None
@@ -82,7 +82,7 @@ class AirPorceApi:
         try:
             response = requests.post(url, json=data, headers=self.headers)
             response.raise_for_status()  # Raises HTTPError for bad responses
-            return response.json().get('data')
+            return response.json()
         except requests.RequestException as e:
             print(f"Error communicating with API: {e}")
             return None
@@ -91,6 +91,6 @@ class AirPorceApi:
         """Fetch data from API for all devices."""
         devices_status = {}
         for device_id in device_id_list:
-            device_status = self.get_device_status(device_id)
+            device_status = self.get_device_status(device_id).get('data')
             devices_status[device_id] = device_status
         return devices_status

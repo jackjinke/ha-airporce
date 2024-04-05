@@ -14,10 +14,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     api = AirPorceApi(token=entry.data[CONFIG_KEY_TOKEN])
     
     # Fetch the groups
-    groups = await hass.async_add_executor_job(api.list_groups)
-    
-    if groups is None:
+    response = await hass.async_add_executor_job(api.list_groups)
+    if response is None or response.get('data') is None:
         return False
+    
+    groups = response.get('data')
 
     device_id_list = [
         device['id']

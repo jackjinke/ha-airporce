@@ -42,7 +42,7 @@ class AirPorceConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             )
             if response:
                 # Success, use the token for your API client creation
-                token = response.get['token']
+                token = response['data']['token']
                 return self.async_create_entry(title=f"User: {phone_number}", data={CONFIG_KEY_TOKEN: token})
             else:
                 errors['base'] = 'invalid_code'
