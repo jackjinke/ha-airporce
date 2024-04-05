@@ -1,0 +1,23 @@
+{
+    "config": {
+        "title": "设置集成",
+        "step": {
+            "user": {
+                "description": "请输入登录AirPorce账户的手机号",
+                "data_description": {
+                    "phone_number": "手机号"
+                }
+            },
+            "verify_code": {
+                "description": "请输入发送至手机的验证码",
+                "data_description": {
+                    "sms_code": "验证码"
+                }
+            }
+        },
+        "error": {
+            "sms_send_error": "发送验证码失败",
+            "invalid_code": "输入的验证码错误"
+        }
+    }
+}
