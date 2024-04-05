@@ -3,17 +3,21 @@
         "title": "Setup integration",
         "step": {
             "user": {
-                "description": "Please enter a valid user API token to connect to AirPorce service",
-                "data": {
-                    "api_token": "API Token"
-                },
+                "description": "Please enter the phone number for your AirPorce account",
                 "data_description": {
-                    "api_token": "You may get a valid API token by capturing app's HTTP request headers to AirPorce API"
+                    "phone_number": "Phone number"
+                }
+            },
+            "verify_code": {
+                "description": "Please enter the verfication code sent to your phone",
+                "data_description": {
+                    "sms_code": "Verification code"
                 }
             }
         },
         "error": {
-            "invalid_token": "The provided token is invalid."
+            "sms_send_error": "Failed to send verification SMS.",
+            "invalid_code": "The provided verification code is incorrect."
         }
     }
 }

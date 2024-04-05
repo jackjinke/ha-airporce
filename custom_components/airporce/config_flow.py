@@ -1,63 +1,56 @@
 from homeassistant import config_entries
-from homeassistant.core import callback
 import voluptuous as vol
-
+from .api import AirPorceApi
 from .const import DOMAIN, CONFIG_KEY_TOKEN
 
 
 class AirPorceConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     VERSION = 1
     CONNECTION_CLASS = config_entries.CONN_CLASS_CLOUD_POLL
+    api = AirPorceApi() # This API instance does not have token
 
     async def async_step_user(self, user_input=None):
-        """Handle a flow initialized by the user."""
         errors = {}
 
-        # Define the data schema for the form
-        data_schema = vol.Schema({
-            vol.Required(CONFIG_KEY_TOKEN): str,
-        })
-
         if user_input is not None:
-            # Validate user input
-            token = user_input[CONFIG_KEY_TOKEN]
-            # Here you would typically validate the token by attempting a test API call
-            valid = len(token) == 36  # TODO: better validation
-            if valid:
-                # If the token is valid, proceed to create the config entry
-                return self.async_create_entry(title=f"User with token: {token[:4]}****{token[-4:]}", data=user_input)
+            response = await self.hass.async_add_executor_job(
+                self.api.send_login_sms, user_input['phone_number']
+            )
+            if response:
+                # Store phone number for next step and go to the next step
+                self.context['phone_number'] = user_input['phone_number']
+                return await self.async_step_verify_code()
             else:
-                # If the token is invalid, show an error message
-                errors["base"] = "invalid_token"
+                errors['base'] = 'sms_send_error'
 
         return self.async_show_form(
-            step_id="user", data_schema=data_schema, errors=errors
+            step_id='user',
+            data_schema=vol.Schema({
+                vol.Required('phone_number'): str,
+            }),
+            errors=errors,
         )
 
-    @staticmethod
-    @callback
-    def async_get_options_flow(config_entry):
-        return AirPorceOptionsFlowHandler(config_entry)
+    async def async_step_verify_code(self, user_input=None):
+        errors = {}
+        phone_number = self.context['phone_number']
 
-
-class AirPorceOptionsFlowHandler(config_entries.OptionsFlow):
-    def __init__(self, config_entry):
-        """Initialize options flow."""
-        self.config_entry = config_entry
-
-    async def async_step_init(self, user_input=None):
-        """Manage the options."""
-        return await self.async_step_user()
-
-    async def async_step_user(self, user_input=None):
-        """Handle the options flow."""
         if user_input is not None:
-            # Update options and finish the flow
-            return self.async_create_entry(title="AirPorce", data=user_input)
+            # Assuming `verify_sms_code` is a method to call your API to verify the SMS code
+            response = await self.hass.async_add_executor_job(
+                self.api.user_login, phone_number, user_input['sms_code']
+            )
+            if response:
+                # Success, use the token for your API client creation
+                token = response.get['token']
+                return self.async_create_entry(title=f"User: {phone_number}", data={CONFIG_KEY_TOKEN: token})
+            else:
+                errors['base'] = 'invalid_code'
 
-        # Define options schema (if you have options to configure)
-        options_schema = vol.Schema({
-            vol.Optional(CONFIG_KEY_TOKEN, default=self.config_entry.options.get(CONFIG_KEY_TOKEN)): str,
-        })
-
-        return self.async_show_form(step_id="user", data_schema=options_schema)
+        return self.async_show_form(
+            step_id='verify_code',
+            data_schema=vol.Schema({
+                vol.Required('sms_code'): str,
+            }),
+            errors=errors,
+        )

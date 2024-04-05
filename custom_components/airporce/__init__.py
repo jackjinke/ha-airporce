@@ -1,5 +1,3 @@
-import functools
-import async_timeout
 import logging
 from datetime import timedelta
 from .api import AirPorceApi
@@ -53,4 +51,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
             hass.config_entries.async_forward_entry_setup(entry, platform)
         )
 
+    return True
+
+async def async_unload_entry(hass, entry):
+    """Handle unloading of an entry."""
+    api = hass.data[DOMAIN][entry.entry_id][DATA_KEY_API]
+    await hass.async_add_executor_job(api.user_logout)
     return True

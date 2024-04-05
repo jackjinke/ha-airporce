@@ -3,15 +3,64 @@ from typing import Optional
 
 class AirPorceApi:
     base_url = "https://aph.airproce.com"
-    lang = 'zh-Hans'
+    country = '中国,大陆'
+    lang = 'zh-Hans'    
 
-    def __init__(self, token: str):
+    def __init__(self, token: str = None):
         self.headers = {
             "Content-Type": "application/json;charset=utf-8",
             "Accept": "application/json",
-            "token": token
         }
+        if token is not None:
+            self.headers['token'] = token
+    
+    def set_token(self, token: str):
+        self.headers['token'] = token
 
+    def send_login_sms(self, phone_number: str) -> Optional[bool]:
+        url = f"{self.base_url}/addons/shopro/sms/send"
+        data = {"event": "loginOrRegister", "mobile": phone_number, "language": self.lang}
+        try:
+            response = requests.post(url, json=data, headers=self.headers)
+            response.raise_for_status()  # Raises HTTPError for bad responses
+            return response.json().get('data')
+        except requests.RequestException as e:
+            print(f"Error communicating with API: {e}")
+            return None
+
+    def user_login(self, phone_number: str, sms_code: str) -> Optional[bool]:
+        url = f"{self.base_url}/addons/shopro/user/smsLoginOrRegister"
+        data = {"mobile": phone_number, "code": sms_code, "language": self.lang, "country": self.country}
+        try:
+            response = requests.post(url, json=data, headers=self.headers)
+            response.raise_for_status()  # Raises HTTPError for bad responses
+            return response.json().get('data')
+        except requests.RequestException as e:
+            print(f"Error communicating with API: {e}")
+            return None
+        
+    def user_logout(self):
+        url = f"{self.base_url}/addons/shopro/user/logout"
+        data = {"language": self.lang}
+        try:
+            response = requests.post(url, json=data, headers=self.headers)
+            response.raise_for_status()  # Raises HTTPError for bad responses
+            return response.json().get('data')
+        except requests.RequestException as e:
+            print(f"Error communicating with API: {e}")
+            return None
+
+    def set_mode(self, device_id: str, mode_id: int) -> Optional[bool]:
+        """Set the mode of the air purifier."""
+        url = f"{self.base_url}/addons/shopro/user_device/action_control"
+        data = {"did": device_id, "mode": mode_id, "language": self.lang}
+        try:
+            response = requests.post(url, json=data, headers=self.headers)
+            response.raise_for_status()  # Raises HTTPError for bad responses
+            return response.json().get('data')
+        except requests.RequestException as e:
+            print(f"Error communicating with API: {e}")
+            return None
     
     def list_groups(self):
         """Fetch the list of devices from the API."""
@@ -20,7 +69,7 @@ class AirPorceApi:
         try:
             response = requests.post(url, json=data, headers=self.headers)
             response.raise_for_status()  # Raises HTTPError for bad responses
-            return response.json()['data']
+            return response.json().get('data')
         except requests.RequestException as e:
             print(f"Error communicating with API: {e}")
             return None
@@ -33,7 +82,7 @@ class AirPorceApi:
         try:
             response = requests.post(url, json=data, headers=self.headers)
             response.raise_for_status()  # Raises HTTPError for bad responses
-            return response.json()['data']
+            return response.json().get('data')
         except requests.RequestException as e:
             print(f"Error communicating with API: {e}")
             return None
@@ -45,16 +94,3 @@ class AirPorceApi:
             device_status = self.get_device_status(device_id)
             devices_status[device_id] = device_status
         return devices_status
-
-    def set_mode(self, device_id: str, mode_id: int) -> Optional[bool]:
-        """Set the mode of the air purifier."""
-        url = f"{self.base_url}/addons/shopro/user_device/action_control"
-        data = {"did": device_id, "mode": mode_id, "language": self.lang}
-        try:
-            response = requests.post(url, json=data, headers=self.headers)
-            response.raise_for_status()  # Raises HTTPError for bad responses
-            return response.json()
-        except requests.RequestException as e:
-            print(f"Error communicating with API: {e}")
-            return None
-
